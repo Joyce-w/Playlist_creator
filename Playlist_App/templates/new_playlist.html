@@ -6,7 +6,7 @@
 
 <div class="container">
     <div class="row m-5">
-        <form action="">
+        <form action="/playlists/add" method="POST">
             {{ form.hidden_tag() }}
             {% for field in form if field.widget.input_type != 'hidden' %}
             <p>

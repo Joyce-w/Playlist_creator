@@ -8,7 +8,6 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql:///playlist_app'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
-app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 connect_db(app)
 db.create_all()
@@ -18,7 +17,7 @@ app.config['SECRET_KEY'] = "I'LL NEVER TELL!!"
 # Having the Debug Toolbar show redirects explicitly is often useful;
 # however, if you want to turn it off, you can uncomment this line:
 #
-# app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
 
 debug = DebugToolbarExtension(app)
 
@@ -52,7 +51,7 @@ def show_playlist(playlist_id):
     return render_template('playlist.html', playlist=playlist)
 
 
-@app.route("/playlists/add")
+@app.route("/playlists/add", methods={"GET", "POST"})
 def add_playlist():
     """Handle add-playlist form:
 
@@ -60,9 +59,18 @@ def add_playlist():
     - if valid: add playlist to SQLA and redirect to list-of-playlists
     """
     form = PlaylistForm()
+    if form.validate_on_submit():
+        #retrieve form data
+        name = form.name.data
+        description = form.description.data
 
-    return render_template('new_playlist.html', form=form)
-    # ADD THE NECESSARY CODE HERE FOR THIS ROUTE TO WORK
+        #make instance & insert into db
+        playlist = Playlist(name=name, description=description)
+        db.session.add(playlist)
+        db.session.commit()
+        return redirect('/playlists')
+    else:
+        return render_template('new_playlist.html', form=form)
 
 
 ##############################################################################
@@ -93,8 +101,18 @@ def add_song():
     - if valid: add playlist to SQLA and redirect to list-of-songs
     """
     form = SongForm()
-    # ADD THE NECESSARY CODE HERE FOR THIS ROUTE TO WORK
-    return render_template('new_song.html', form=form)
+    if form.validate_on_submit():
+        # retrieve form data
+        title = form.title.data
+        artist = form.artist.data
+
+        # create instance & insert into db
+        song = Song(title=title, artist=artist)
+        db.session.add(song)
+        db.session.commit()
+        return redirect("/songs")
+    else:
+        return render_template('new_song.html', form=form)
 
 @app.route("/playlists/<int:playlist_id>/add-song", methods=["GET", "POST"])
 def add_song_to_playlist(playlist_id):

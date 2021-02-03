@@ -114,28 +114,26 @@ def add_song():
     else:
         return render_template('new_song.html', form=form)
 
-@app.route("/playlists/<int:playlist_id>/add-song", methods=["GET", "POST"])
+@app.route("/playlists/<int:playlist_id>/add-song", methods=["GET","POST"])
 def add_song_to_playlist(playlist_id):
     """Add a playlist and redirect to list."""
 
-    # BONUS - ADD THE NECESSARY CODE HERE FOR THIS ROUTE TO WORK
-
-    # THE SOLUTION TO THIS IS IN A HINT IN THE ASSESSMENT INSTRUCTIONS
 
     playlist = Playlist.query.get_or_404(playlist_id)
     form = NewSongForPlaylistForm()
 
-    # Restrict form to songs not already on this playlist
+    # # Restrict form to songs not already on this playlist
 
-    curr_on_playlist = ...
-    form.song.choices = ...
+    curr_on_playlist = [curr.id for curr in playlist.songs]
+    form.song.choices = (db.session.query(Song.id,Song.title).filter(Song.id.notin_(curr_on_playlist)).all())
 
     if form.validate_on_submit():
+        playlist_song = PlaylistSong(playlist_id=playlist_id, song_id=form.song.data)
 
-          # ADD THE NECESSARY CODE HERE FOR THIS ROUTE TO WORK
-
-          return redirect(f"/playlists/{playlist_id}")
+        db.session.add(playlist_song)
+        db.session.commit()
+        
+        return redirect(f"/playlists/{playlist_id}")
 
     return render_template("add_song_to_playlist.html",
-                             playlist=playlist,
-                             form=form)
+                             playlist=playlist, form=form)

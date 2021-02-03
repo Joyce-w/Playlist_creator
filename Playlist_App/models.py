@@ -24,7 +24,7 @@ class Playlist(db.Model):
     description = db.Column(db.String)
 
     playlist = db.relationship('PlaylistSong', backref="playlist")
-
+    songs = db.relationship('Song', secondary="playlist_songs", backref="playlists")
 class Song(db.Model):
     """Song."""
 
